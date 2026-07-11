@@ -3,11 +3,31 @@ name: CodeQL Analysis
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
+      - 'assets/**'
+      - 'docs/**'
+      - '.gitignore'
+      - '.editorconfig'
+      - '.gitattributes'
   pull_request:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
+      - 'assets/**'
+      - 'docs/**'
+      - '.gitignore'
+      - '.editorconfig'
+      - '.gitattributes'
   schedule:
     - cron: '30 1 * * 6' # Saturdays at 1:30 AM
   workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
@@ -38,16 +58,19 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
+          cache: true
+          cache-dependency-path: PCBuilder.sln
 
       - name: Restore C# Dependencies
         if: matrix.language == 'csharp'
         run: dotnet restore PCBuilder.sln
 
-      - name: Build C# Code
+      - name: Build C# Code (Optimized for CodeQL Speed)
         if: matrix.language == 'csharp'
-        run: dotnet build PCBuilder.sln --no-restore -c Release
+        run: dotnet build PCBuilder.sln --no-restore -c Debug /p:RunAnalyzers=false /p:CreateDocumentationFile=false /p:GeneratePackageOnBuild=false
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+
