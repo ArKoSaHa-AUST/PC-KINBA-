@@ -40,7 +40,7 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Scan Repository Secrets (Gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true # Prevents failure if gitleaks limits or quota fails, but alerts will show
@@ -57,7 +57,7 @@ jobs:
           docker build -t pcbuilder-api:test -f docker/api/Dockerfile .
 
       - name: Run Trivy vulnerability scanner on API Image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: 'pcbuilder-api:test'
           format: 'table'
